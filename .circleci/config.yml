@@ -1,0 +1,52 @@
+version: 2.1
+executors:
+  aio_socketpool:
+    docker:
+      - image: circleci/python:3.7-stretch
+
+commands:
+  build-package:
+    description: "Install dependencies"
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "setup.py" }}
+      - run:
+          name: "Install Python dependencies"
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -q -U pip
+            pip install --progress-bar=off -r requirements.txt
+            pip install --progress-bar=off .
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}-{{ checksum "setup.py" }}
+          paths:
+            - venv
+
+jobs:
+  test-py3:
+    executor: aio_socketpool
+    steps:
+      - build-package
+      - run:
+          name: "Run tests"
+          command: |
+            . venv/bin/activate
+            make test
+  lint:
+    executor: aio_socketpool
+    steps:
+      - build-package
+      - run:
+          name: "Run flake8, black, and pydocstyle"
+          command: |
+            . venv/bin/activate
+            make lint
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test-py3
+      - lint
