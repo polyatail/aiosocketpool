@@ -3,7 +3,6 @@ import contextlib
 import errno
 import logging
 import platform
-import random
 import select
 import socket
 import time
