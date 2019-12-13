@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from aio_socketpool import AsyncConnectionPool, AsyncTcpConnector
+from aiosocketpool import AsyncConnectionPool, AsyncTcpConnector
 
 
 @pytest.mark.asyncio

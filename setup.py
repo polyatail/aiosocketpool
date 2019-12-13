@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-with open("aio_socketpool/version.py") as version_file:
+with open("aiosocketpool/version.py") as version_file:
     exec(version_file.read())
 
 setup(
-    name="aio_socketpool",
+    name="aiosocketpool",
     version=__version__,
     packages=find_packages(exclude=["*test*"]),
     install_requires=["async_timeout>=3.0.1"],
