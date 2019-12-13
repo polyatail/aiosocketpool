@@ -3,6 +3,9 @@ from setuptools import setup, find_packages
 with open("aiosocketpool/version.py") as version_file:
     exec(version_file.read())
 
+with open("README.md") as readme:
+    README = readme.read()
+
 setup(
     name="aiosocketpool",
     version=__version__,
@@ -18,4 +21,13 @@ setup(
             "pytest-asyncio>=0.10.0",
         ]
     },
+    author="Roo Sczesnak",
+    author_email="andrewscz@gmail.com",
+    description="An asyncio-compatible socket pool",
+    long_description=README,
+    long_description_content_type="text/markdown",
+    license="MIT License",
+    keyword="asyncio socketpool aiosocketpool",
+    url="https://github.com/polyatail/aiosocketpool",
+    test_suite="tests",
 )
