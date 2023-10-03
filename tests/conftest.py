@@ -7,9 +7,9 @@ import pytest
 
 @pytest.fixture(scope="function")
 def background_event_loop():
-    def _run_loop(loop, waiter):
+    def _run_loop(_loop, _waiter):
         try:
-            loop.run_until_complete(waiter)
+            _loop.run_until_complete(_waiter)
         except asyncio.CancelledError:
             pass
 

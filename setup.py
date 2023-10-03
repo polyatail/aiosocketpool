@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages  # type: ignore
 
 with open("aiosocketpool/version.py") as version_file:
     exec(version_file.read())
@@ -8,7 +8,7 @@ with open("README.md") as readme:
 
 setup(
     name="aiosocketpool",
-    version=__version__,
+    version=__version__,  # type: ignore
     packages=find_packages(exclude=["*test*"]),
     install_requires=["async_timeout>=3.0.1"],
     extras_require={

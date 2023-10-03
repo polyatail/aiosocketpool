@@ -6,7 +6,7 @@ import platform
 import select
 import socket
 import time
-from typing import Optional
+from typing import Optional, Type, AsyncGenerator
 import weakref
 
 import async_timeout
@@ -38,26 +38,26 @@ def is_connected(sock: socket.socket):
     try:
         fno = sock.fileno()
     except socket.error as e:
-        if e[0] == errno.EBADF:
+        if e.errno == errno.EBADF:
             return False
         raise
 
     try:
         if hasattr(select, "epoll"):
             ep = select.epoll()
-            ep.register(fno, select.EPOLLOUT | select.EPOLLIN)
+            ep.register(fno, select.EPOLLOUT | select.EPOLLIN)  # type: ignore
             events = ep.poll(0)
             for fd, ev in events:
-                if fno == fd and (ev & select.EPOLLOUT or ev & select.EPOLLIN):
+                if fno == fd and (ev & select.EPOLLOUT or ev & select.EPOLLIN):  # type: ignore
                     ep.unregister(fno)
                     return True
             ep.unregister(fno)
         elif hasattr(select, "poll"):
             p = select.poll()
-            p.register(fno, select.POLLOUT | select.POLLIN)
+            p.register(fno, select.POLLOUT | select.POLLIN)  # type: ignore
             events = p.poll(0)
             for fd, ev in events:
-                if fno == fd and (ev & select.POLLOUT or ev & select.POLLIN):
+                if fno == fd and (ev & select.POLLOUT or ev & select.POLLIN):  # type: ignore
                     p.unregister(fno)
                     return True
             p.unregister(fno)
@@ -151,7 +151,7 @@ class AsyncTcpConnector(BaseConnector):
             Time (in seconds) before giving up on connect, send, and receive operations.
         """
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket.setblocking(0)
+        self._socket.setblocking(False)
 
         self.host = host
         self.port = port
@@ -231,7 +231,7 @@ class AsyncTcpConnector(BaseConnector):
         with async_timeout.timeout(self.timeout):
             return await loop.sock_sendall(self._socket, data)
 
-    async def recv(self, size: Optional[int] = 1024) -> bytes:
+    async def recv(self, size: int = 1024) -> bytes:
         """Receive some data from the remote host.
 
         See the documentation for `socket.socket.recv` for more information.
@@ -328,7 +328,7 @@ class AsyncConnectionPool(object):
 
     def __init__(
         self,
-        factory: BaseConnector,
+        factory: Type[BaseConnector],
         max_lifetime: int = 600,
         max_size: int = 10,
         options=None,
@@ -341,7 +341,7 @@ class AsyncConnectionPool(object):
         self.options = options or {}
 
         self.pool = IterablePriorityQueue(max_size)
-        self.connections = weakref.WeakSet()
+        self.connections: weakref.WeakSet[BaseConnector] = weakref.WeakSet()
 
         self._reaper_task = None
 
@@ -386,7 +386,8 @@ class AsyncConnectionPool(object):
             if current_pool_size == 0:
                 break
 
-    def _reap_connection(self, conn: BaseConnector):
+    @staticmethod
+    def _reap_connection(conn: BaseConnector):
         if conn.is_connected():
             conn.invalidate()
 
@@ -537,7 +538,7 @@ class AsyncConnectionPool(object):
         raise SocketPoolException("Connection factory failed to connect and did not raise")
 
     @contextlib.asynccontextmanager
-    async def connection(self, **options) -> BaseConnector:
+    async def connection(self, **options) -> AsyncGenerator[BaseConnector, None]:
         conn = await self.get(**options)
 
         try:
