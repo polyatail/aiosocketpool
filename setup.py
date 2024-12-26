@@ -10,7 +10,6 @@ setup(
     name="aiosocketpool",
     version=__version__,  # type: ignore
     packages=find_packages(exclude=["*test*"]),
-    install_requires=["async_timeout>=3.0.1"],
     extras_require={
         "testing": [
             "black>=19.3b0",

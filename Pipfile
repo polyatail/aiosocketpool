@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-async-timeout = "~=3.0.1"
 
 [dev-packages]
 black = "*"
