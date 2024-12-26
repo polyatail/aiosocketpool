@@ -9,8 +9,6 @@ import time
 from typing import Optional, Type, AsyncGenerator
 import weakref
 
-import async_timeout
-
 
 def can_use_kqueue():
     # kqueue doesn't work on OS X 10.6 and below
@@ -171,8 +169,9 @@ class AsyncTcpConnector(BaseConnector):
 
         loop = asyncio.get_event_loop()
 
-        with async_timeout.timeout(self.timeout):
-            await loop.sock_connect(self._socket, (self.host, self.port))
+        await asyncio.wait_for(
+            loop.sock_connect(self._socket, (self.host, self.port)), self.timeout
+        )
 
         if not is_connected(self._socket):
             raise SocketPoolException(f"Connection to {self.host}:{self.port} failed")
@@ -228,8 +227,7 @@ class AsyncTcpConnector(BaseConnector):
         """
         loop = asyncio.get_event_loop()
 
-        with async_timeout.timeout(self.timeout):
-            return await loop.sock_sendall(self._socket, data)
+        return await asyncio.wait_for(loop.sock_sendall(self._socket, data), self.timeout)
 
     async def recv(self, size: int = 1024) -> bytes:
         """Receive some data from the remote host.
@@ -247,8 +245,7 @@ class AsyncTcpConnector(BaseConnector):
         """
         loop = asyncio.get_event_loop()
 
-        with async_timeout.timeout(self.timeout):
-            return await loop.sock_recv(self._socket, size)
+        return await asyncio.wait_for(loop.sock_recv(self._socket, size), self.timeout)
 
     async def recv_exactly(self, size: int) -> bytes:
         """Receive an exact amount of data from the remote host.
