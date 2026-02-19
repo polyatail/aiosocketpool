@@ -37,8 +37,6 @@ testing = [
 Homepage = "https://github.com/polyatail/aiosocketpool"
 Repository = "https://github.com/polyatail/aiosocketpool"
 
-[tool.setuptools]
-
 [tool.setuptools.dynamic]
 version = { attr = "aiosocketpool.version.__version__" }
 
