@@ -24,7 +24,7 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 testing = [
-  "black>=19.3b0",
+  "black>=24.3.0",
   "flake8>=3.7.8",
   "mypy>=1.19.1",
   "pip-tools>=4.2.0",
