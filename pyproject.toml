@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "aiosocketpool"
 description = "An asyncio-compatible socket pool"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [
   { name = "Roo Sczesnak", email = "andrewscz@gmail.com" },

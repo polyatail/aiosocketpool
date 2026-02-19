@@ -168,7 +168,7 @@ class AsyncTcpConnector(BaseConnector):
         if __debug__:
             logging.debug(f"AsyncTcpConnector: new connection to {self.host}:{self.port}")
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         await asyncio.wait_for(
             loop.sock_connect(self._socket, (self.host, self.port)), self.timeout
@@ -226,7 +226,7 @@ class AsyncTcpConnector(BaseConnector):
         -------
         `None` on success
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         return await asyncio.wait_for(loop.sock_sendall(self._socket, data), self.timeout)
 
@@ -244,7 +244,7 @@ class AsyncTcpConnector(BaseConnector):
         -------
         `bytes`
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         return await asyncio.wait_for(loop.sock_recv(self._socket, size), self.timeout)
 
@@ -342,8 +342,10 @@ class AsyncConnectionPool(object):
         self.connections: weakref.WeakSet[BaseConnector] = weakref.WeakSet()
 
         self._reaper_task = None
+        self._reaper_should_be_running = False
 
         if reap_connections:
+            self._reaper_should_be_running = True
             self.reap_delay = reap_delay
             self.start_reaper()
 
@@ -354,16 +356,29 @@ class AsyncConnectionPool(object):
         return time.time() - conn.get_lifetime() > self.max_lifetime
 
     def start_reaper(self):
-        loop = asyncio.get_event_loop()
+        """Start the background reaper task on the current running loop.
+
+        If called when no event loop is running (e.g., pool constructed before
+        asyncio.run()), defer startup until a running loop is available.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
 
         self._reaper_task = loop.create_task(self._reaper_loop())
-        self.ensure_reaper_started()
 
     def stop_reaper(self):
         if self._reaper_task is not None:
             self._reaper_task.cancel()
 
     def ensure_reaper_started(self):
+        if self._reaper_task is None:
+            if self._reaper_should_be_running:
+                self.start_reaper()
+
+            return
+
         if self._reaper_task.cancelled() or self._reaper_task.done():
             self.start_reaper()
 
@@ -446,8 +461,7 @@ class AsyncConnectionPool(object):
         -----
         If a connector is too old, or we are going to exceed `max_size`, drop it.
         """
-        if self._reaper_task is not None:
-            self.ensure_reaper_started()
+        self.ensure_reaper_started()
 
         current_pool_size = self.pool.qsize()
 
