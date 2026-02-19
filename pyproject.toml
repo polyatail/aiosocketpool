@@ -44,7 +44,3 @@ version = { attr = "aiosocketpool.version.__version__" }
 
 [tool.setuptools.packages.find]
 exclude = ["tests*", "test*"]
-
-[tool.flake8]
-ignore = ["E203", "W503"]
-max-line-length = 100
