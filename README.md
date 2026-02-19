@@ -13,8 +13,9 @@ Based on [socketpool](https://github.com/benoitc/socketpool).
 **Requires Python 3.8 or above.**
 
 ## Examples
+You can run these examples, one after another, in a `python -m asyncio` shell.
 
-Run a simple TCP echo server in a background thread, using the `asyncio` library.
+1. Run a simple TCP echo server in a background thread, using the `asyncio` library.
 
 ```python
 import asyncio
@@ -34,9 +35,19 @@ t.start()
 
 # run a tcp echo server using asyncio in the background event loop
 async def echo_handler(reader, writer):
-    writer.write(await reader.read(32))
-    await writer.drain()
-    writer.close()
+    try:
+        while True:
+            try:
+                data = await reader.readuntil(b'\n')
+            except asyncio.IncompleteReadError:
+                break
+
+            writer.write(data)
+            await writer.drain()
+
+    finally:
+        writer.close()
+        await writer.wait_closed()
 
 
 async def echo_server(tcp_port):
@@ -47,7 +58,7 @@ async def echo_server(tcp_port):
 asyncio.run_coroutine_threadsafe(echo_server(12345), loop)
 ```
 
-Create a new TCP connection pool in the main thread, get a connection, and send and receive data.
+2. Create a new TCP connection pool in the main thread, get a connection, and send and receive data.
 
 ```python
 from aiosocketpool import AsyncConnectionPool, AsyncTcpConnector
@@ -63,22 +74,20 @@ pool = AsyncConnectionPool(
 
 async def hello_world():
     async with pool.connection(host="127.0.0.1", port=12345) as conn:
-        await conn.sendall(b"hello world")
+        await conn.sendall(b"hello world\n")
         print(await conn.recv(32))
 
 
 await hello_world()
 ```
 
-Create a bunch of connections and run them all concurrently.
+3. Create a bunch of connections and run them all concurrently.
 
 ```python
-loop = asyncio.get_event_loop()
-
 tasks = []
 
 for _ in range(25):
-    tasks.append(loop.create_task(hello_world()))
+    tasks.append(asyncio.create_task(hello_world()))
 
-loop.run_until_complete(asyncio.gather(*tasks))
+await asyncio.gather(*tasks)
 ```
