@@ -1,0 +1,36 @@
+name: aiosocketpool
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python3 -m venv venv
+        . venv/bin/activate
+        pip install -q -U pip
+        pip install --progress-bar=off -r requirements.txt
+        pip install --progress-bar=off .
+    - name: Lint
+      run: |
+        . venv/bin/activate
+        make lint
+    - name: Test
+      run: |
+        . venv/bin/activate
+        make test
