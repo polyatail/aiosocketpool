@@ -1,5 +1,5 @@
-[![Circle CI](https://circleci.com/gh/polyatail/aiosocketpool.svg?style=shield&circle-token=f7f570b230ecf72d3df817cca445c5a28809068a)](https://circleci.com/gh/onecodex/mainline)
-![Black Code Style](https://camo.githubusercontent.com/28a51fe3a2c05048d8ca8ecd039d6b1619037326/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f636f64652532307374796c652d626c61636b2d3030303030302e737667)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![CI](https://github.com/polyatail/aiosocketpool/actions/workflows/ci.yml/badge.svg)](https://github.com/polyatail/aiosocketpool/actions/workflows/ci.yml)
 
 # aiosocketpool
 An asyncio-compatible socket pool. Simple, compact, easily extended.
@@ -10,7 +10,7 @@ every request. Combining an `asyncio` event loop and a socket pool might be the 
 
 Based on [socketpool](https://github.com/benoitc/socketpool).
 
-**Requires Python 3.7 or above.**
+**Requires Python 3.8 or above.**
 
 ## Examples
 

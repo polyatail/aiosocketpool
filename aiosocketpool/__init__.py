@@ -6,7 +6,7 @@ import platform
 import select
 import socket
 import time
-from typing import Optional, Type, AsyncGenerator
+from typing import Optional, Type, AsyncGenerator, Any, cast
 import weakref
 
 
@@ -60,23 +60,24 @@ def is_connected(sock: socket.socket):
                     return True
             p.unregister(fno)
         elif can_use_kqueue():
-            kq = select.kqueue()
+            sel = cast(Any, select)
+            kq = sel.kqueue()
             events = [
-                select.kevent(fno, select.KQ_FILTER_READ, select.KQ_EV_ADD),
-                select.kevent(fno, select.KQ_FILTER_WRITE, select.KQ_EV_ADD),
+                sel.kevent(fno, sel.KQ_FILTER_READ, sel.KQ_EV_ADD),
+                sel.kevent(fno, sel.KQ_FILTER_WRITE, sel.KQ_EV_ADD),
             ]
             kq.control(events, 0)
             kevents = kq.control(None, 4, 0)
             for ev in kevents:
                 if ev.ident == fno:
-                    if ev.flags & select.KQ_EV_ERROR:
+                    if ev.flags & sel.KQ_EV_ERROR:
                         return False
                     else:
                         return True
 
             events = [
-                select.kevent(fno, select.KQ_FILTER_READ, select.KQ_EV_DELETE),
-                select.kevent(fno, select.KQ_FILTER_WRITE, select.KQ_EV_DELETE),
+                sel.kevent(fno, sel.KQ_FILTER_READ, sel.KQ_EV_DELETE),
+                sel.kevent(fno, sel.KQ_FILTER_WRITE, sel.KQ_EV_DELETE),
             ]
             kq.control(events, 0)
             kq.close()
